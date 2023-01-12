@@ -27,7 +27,6 @@ let port = process.env.PORT || 3069;
 //     console.log('connected as id ' + connection.threadId);
 // });
 
-// app.set('trust proxy', 1)
 app.use(session({
     secret: 'amankrokx',
     saveUninitialized: true,
