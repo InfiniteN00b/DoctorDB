@@ -7,20 +7,12 @@ import Box from '@mui/material/Box';
 import ULogin from '../../components/ULogin';
 import USignUp from '../../components/USignUp';
 
-function SignInOutPage() {
-  const [value, setValue] = useState(0);
+function SignInOutPage({tab}) {
+  const [value, setValue] = useState(tab);
 
   React.useEffect(() => {
-    fetch('http://localhost:3069/api/login', {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'include',
-    }).then((res) => res.json())
-      .then((data) => {
-        if (data && data.firstName)
-          window.location.href = '/';
-      });
-  }, []);
+    setValue(tab);
+  }, [tab])
 
  const handleChange = (event, newValue) => {
     setValue(newValue);

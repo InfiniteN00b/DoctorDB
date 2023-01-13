@@ -10,22 +10,22 @@ let port = process.env.PORT || 3069;
 
 // create mysql connection
 
-// let connection = mysql.createConnection({
-//     host: 'localhost',
-//     user: 'root',
-//     password: 'root',
-//     database: 'doctor',
-//     port: 3306,
-//     multipleStatements: true,
+let connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'doctor',
+    port: 3306,
+    multipleStatements: true,
     
-// });
-// connection.connect(function(err) {
-//     if (err) {
-//         console.error('error connecting: ' + err.stack);
-//         process.exit(-1);
-//     }
-//     console.log('connected as id ' + connection.threadId);
-// });
+});
+connection.connect(function(err) {
+    if (err) {
+        console.error('error connecting: ' + err.stack);
+        process.exit(-1);
+    }
+    console.log('connected as id ' + connection.threadId);
+});
 
 app.use(session({
     secret: 'amankrokx',
@@ -95,7 +95,7 @@ app.use(function(req, res, next) {
 app.post('/api/login', function(req, res) {
     // check if request type is option
     console.log(req.session)
-    if (req.session.user) {
+    if (req.session.user && req.session.user.email) {
         res.status(200).json(req.session.user)
         return;
     }
@@ -104,26 +104,31 @@ app.post('/api/login', function(req, res) {
         return;
     }
     let user = req.body;
-    // let sql = "SELECT * FROM User WHERE email = '" + user.email + "' AND password = '" + user.password + "'";
-    // connection
-    //     .query
-    //     (sql, function(err, result) {
-    //         if (err) {
-    //             console.log(err);
-    //             res.status(500).json(err);
-    //         } else {
-    //             if (result.length > 0) {
-    //                 console.log(result[0]);
-    //                 req.session.user = result[0]
-    //                 req.session.save()
-    //                 res.status(200).json(result);
-    //             }
+    let sql = "SELECT * FROM User WHERE email = '" + user.email + "' AND password = '" + user.password + "'";
+    connection
+        .query
+        (sql, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                if (result.length > 0) {
+                    console.log(result[0]);
+                    req.session.user = result[0]
+                    req.session.save()
+                    res.status(200).json(result);
+                }
+                else {
+                    res.status(401).json({message: 'Invalid Credentials'});
+                }
     
-    //         }
-    //     });
-    req.session.user = user
-    req.session.save()
-    res.status(200).json(user || {error: 'No user found'});
+            }
+        });
+});
+
+app.post('/api/logout', function(req, res) {
+    req.session.destroy();
+    res.status(200).json({message: 'Logged out successfully'});
 });
 
 
