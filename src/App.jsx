@@ -9,6 +9,8 @@ import AuthContext from './components/AuthContext'
 // import { Routes, Route, Router, RouterProvider, BrowserRouter, Link } from "react-router-dom"
 // import react-router-dom
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Ddash from './pages/Ddash'
+import Pdash from './pages/Pdash'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -17,7 +19,7 @@ function App() {
   useEffect(() => {
     console.log('logged', logged, user)
     if (logged === 0) {
-      fetch('http://localhost:3069/api/login', {
+      fetch('/api/login', {
         method: 'POST',
         mode: 'cors',
         credentials: 'include',
@@ -35,7 +37,7 @@ function App() {
         })
     }
     else if (logged === 2) {
-      fetch('http://localhost:3069/api/logout', {
+      fetch('/api/logout', {
         method: 'POST',
         mode: 'cors',
         credentials: 'include',
@@ -60,6 +62,8 @@ function App() {
             <Route path="/login" element={<SignInOutPage tab={0} /> } />
             <Route path="/signup" element={<SignInOutPage tab={1} /> } />
             <Route path="/about" element={<About />} />
+            <Route path="/doctordash" element={<Ddash/>} />
+            <Route path="/patientdash" element={<Pdash />} />
             <Route path="*" element={<h1>404: Not Found</h1>} />
 
         </Routes>

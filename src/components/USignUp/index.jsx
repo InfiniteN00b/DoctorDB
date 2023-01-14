@@ -35,7 +35,7 @@ const USignUp = () => {
         // fetch post request to backend with FirstName, LastName, email, password as json data
         // if success, redirect to login page
         // if fail, show error message
-        fetch('http://localhost:3069/api/signup', {
+        fetch('/api/signup', {
             method: 'POST',
             mode: 'cors',
             credentials: 'include',

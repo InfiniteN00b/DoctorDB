@@ -22,7 +22,7 @@ const ULogin = (props) => {
         // logic to send data to server with email and password as json data using fetch
         // if success, redirect to home page
         // if fail, show error message
-        fetch('http://localhost:3069/api/login', {
+        fetch('/api/login', {
             method: 'POST',
             mode: 'cors',
             credentials: 'include',

@@ -99,7 +99,7 @@ app.post('/api/login', function(req, res) {
         res.status(200).json(req.session.user)
         return;
     }
-    if (!req.body) {
+    if (!(req.body && req.body.email)) {
         res.status(400).json({message: 'No data provided'});
         return;
     }
