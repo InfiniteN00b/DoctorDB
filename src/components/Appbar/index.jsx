@@ -18,13 +18,12 @@ import AuthContext from '../AuthContext';
 // import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 // import LocalPharmacyRoundedIcon from '@mui/icons-material/LocalPharmacyRounded';
 
-const pages = ['Hospitals', 'Blogs', 'About'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
-
 function ResponsiveAppBar() {
   const authContext = React.useContext(AuthContext)
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [pages, setPages] = React.useState(['BookAppointment', 'My Appointments','About' ]);
+  const [settings, setSettings] = React.useState(['Profile', 'Dashboard', 'Logout']);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -37,9 +36,21 @@ function ResponsiveAppBar() {
     setAnchorElNav(null);
   };
 
+  React.useEffect(() => {
+    console.log(authContext.user)
+    if (authContext.logged === 1 && authContext.user.UserRoleid == 1) {
+      console.log('admin')
+      setPages(['Appointments', 'About'])
+    }
+
+  }, [authContext.user])
+
+
   const handleCloseUserMenu = (e) => {
-    if (e === 'Logout')
+    if (e === 'Logout'){
       authContext.setLogged(2)
+      window.location.href = '/'
+    }
     setAnchorElUser(null);
   };
 
@@ -122,11 +133,8 @@ function ResponsiveAppBar() {
               fontWeight: 700,
               letterSpacing: '.3rem',
               color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            DOCPOINT
-          </Typography>
+              textDecoration: 'none'
+            }}/>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
               <Link to={page} style={{
@@ -145,10 +153,11 @@ function ResponsiveAppBar() {
 
           {
             authContext.user ? (
-              <Box sx={{ flexGrow: 0 }}>
+              <Box sx={{display:'flex', flexGrow: 0}}>
+                <Button variant="contained" color="error" sx={{mr:3}} onClick={() => handleCloseUserMenu('Logout')}>logout</Button>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                    <Avatar sx={{ width: 36, height: 36 }} src={authContext.user.photoURL}/>
                   </IconButton>
                 </Tooltip>
                 <Menu
@@ -173,6 +182,9 @@ function ResponsiveAppBar() {
                     </MenuItem>
                   ))}
                 </Menu>
+                <Typography sx={{ml:3, alignSelf:'center'}} variant="body1" noWrap>
+                  {authContext.user.FirstName + ' ' + authContext.user.LastName}
+                </Typography>
               </Box>
 
             ) : (

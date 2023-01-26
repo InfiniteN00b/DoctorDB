@@ -50,7 +50,21 @@ app.use(bodyParser.json());
 // set the static files location /public/img will be /img for users
 app.use(express.static(path.dirname + '/dist'));
 
+
 // routes
+app.use(function(req, res, next) {
+    console.log(req.session);
+
+    console.log('!OPTIONS');
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Credentials', "true");
+    // accept content type
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept, Origin, X-Auth-Token, X-Requested-With, X-HTTP-Method-Override, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Access-Control-Max-Age');
+    
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    next();
+});
+
 // api to signup users using users table
 app.post('/api/signup', function(req, res) {
     console.log(req.session);
@@ -76,19 +90,6 @@ app.post('/api/signup', function(req, res) {
             res.status(200).json(result)
         }
         });
-});
-
-app.use(function(req, res, next) {
-    console.log(req.session);
-
-    console.log('!OPTIONS');
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Credentials', "true");
-    // accept content type
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, Accept, Origin, X-Auth-Token, X-Requested-With, X-HTTP-Method-Override, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods, Access-Control-Allow-Credentials, Access-Control-Max-Age');
-    
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    next();
 });
 
 // api to login users using users table
@@ -130,6 +131,162 @@ app.post('/api/logout', function(req, res) {
     req.session.destroy();
     res.status(200).json({message: 'Logged out successfully'});
 });
+
+// api to set appointments
+app.post('/api/appointment', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+    if (!req.body) {
+        res.status(400).json({message: 'No data provided'});
+        return;
+    }
+    let appointment = req.body;
+    let sql = `INSERT INTO Appointment (patient_id, doctor_id, time_slot) VALUES ('${appointment.pid}', '${appointment.did}', '${appointment.timeSlot}');`;
+    connection
+        .query(sql, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(result);
+            }
+        });
+});
+
+// send doctors list
+app.get('/api/doctors', function(req, res) {
+    const query = `SELECT * FROM doctor JOIN User ON doctor.id = User.id;`;
+    connection
+        .query
+        (query  , function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                const doctors = result.map((doctor) => {
+                    delete doctor.password;
+                    return doctor;
+                });
+                res.status(200).json(doctors);
+            }
+        });
+});
+
+// get appointments from doctor id
+app.get('/api/appointments/', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+    if (!(req.session.user.UserRoleid && req.session.user.UserRoleid == 1)) {
+        res.status(400).json({message: ''});
+        return;
+    }
+    const query = `SELECT * FROM Appointment JOIN User ON Appointment.patient_id = User.id WHERE doctor_id = ${req.session.user.id};`;
+    connection
+        .query(query, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                const appointments = result.map((d) => {
+                    delete d.password;
+                    return d;   
+                });
+                res.status(200).json(appointments);
+            }
+        });
+});
+
+// get profile infor at /api/profile
+app.post('/api/profile', function(req, res) {  
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+    if (!req.body) {
+        res.status(400).json({message: 'No data provided'});
+        return;
+    }
+    if (!(req.session.user.UserRoleid == 2 && req.body.id === req.session.user.id)) {
+        res.status(400).json({message: 'Invalid request'});
+        return;
+    }
+    let user = req.body;
+    // if sex, firstName, lastName, phone, dob are different, update them
+    if (user.sex !== req.session.user.sex || user.firstName !== req.session.user.FirstName || user.lastName !== req.session.user.LastName || user.phone !== req.session.user.phone || user.dob !== req.session.user.dob) {
+        // write query to update user details
+        const sql = `UPDATE User SET sex = '${user.sex}', firstName = '${user.firstName}', lastName = '${user.lastName}', phone = '${user.phone}', bdate = '${user.dob}' where id = ${req.session.user.id};`;
+        connection
+            .query(sql, function(err, result) {
+                if (err) {
+                    console.log(err);
+                    res.status(500).json(err);
+                    return;
+                } else {
+                    req.session.user.FirstName = user.firstName;
+                    req.session.user.LastName = user.lastName;
+                    req.session.user.dob = user.dob;
+                    req.session.user.phone = user.phone;
+                    req.session.user.sex = user.sex;
+                    req.session.save();
+                    res.status(200).json(result);
+                }
+            })
+    }
+});
+
+// get accepted appointments
+app.get('/api/accepted/:bookingID', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+
+    if (!(req.session.user.UserRoleid && req.session.user.UserRoleid == '1')) {
+        console.log( "doctor", req.session.user);
+        res.status(400).json({message: ''});
+        return;
+    }
+    const query = `Update Appointment SET accepted = true WHERE book_id = ${req.params.bookingID};`;
+    connection
+        .query(query, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(result);
+            }
+        });
+});
+
+
+app.get('/api/cancel/:bookingID', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+
+    if (!(req.session.user.UserRoleid && req.session.user.UserRoleid == '1')) {
+        console.log( "doctor", req.session.user);
+        res.status(400).json({message: ''});
+        return;
+    }
+    const query = `Delete From Appointment WHERE book_id = ${req.params.bookingID};`;
+    connection
+        .query(query, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(result);
+            }
+        });
+});
+  
+
 
 
 // start app ===============================================

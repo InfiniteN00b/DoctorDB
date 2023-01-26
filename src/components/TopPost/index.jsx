@@ -7,8 +7,13 @@ import Link from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button'
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import DiagPDetail  from '../DiagPDetail';
+import AuthContext from '../AuthContext';
+
 function TopPost(props) {
   const { post } = props;
+  const [open, setOpen] = React.useState(false);
+  const authContext = React.useContext(AuthContext);
 
   return (
     <Paper
@@ -56,10 +61,11 @@ function TopPost(props) {
             {/* <Link variant="subtitle1" href="#">
               {post.linkText}
             </Link> */}
-            <Button variant="contained" color="primary">
-              {post.linkText}
+            <Button variant="contained" color="primary" onClick={() => (authContext.logged == 1) ? setOpen(true) : window.location = "./login"}>
+              Get Started  
               <RestartAltRoundedIcon sx = {{margin : 0.5 }}/>
             </Button>
+            {open && <DiagPDetail open={open} setOpen={setOpen} user={authContext.user}/>}
           </Box>
         </Grid>
       </Grid>
