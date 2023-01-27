@@ -1,0 +1,174 @@
+\chapter{Implementation}
+\begin{itemize}
+    \item 
+    \text{To connect MySQL and React i.e FrontEnd and BackEnd connectivity}
+\begin{verbatim}
+let connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'doctor',
+    port: 3306,
+    multipleStatements: true,
+    
+});
+connection.connect(function(err) {
+    if (err) {
+        console.error('error connecting: ' + err.stack);
+        process.exit(-1);
+    }
+    console.log('connected as id ' + connection.threadId);
+});
+\end{verbatim}
+    \item
+    \text{Setting Access controls}
+    \begin{verbatim}
+    app.use(function(req, res, next) {
+        console.log(req.session);
+        console.log('!OPTIONS');
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        res.header('Access-Control-Allow-Credentials', "true");
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+        next();
+    });
+    \end{verbatim}
+    \item
+    \text{Login API: }
+    \begin{verbatim}
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        fetch('/api/login', {
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'include',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: data.get('email'),
+                password: data.get('password')
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            window.location = '/'
+        }
+        )
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    };
+    \end{verbatim}
+    \item
+    \text{SignUp API: }
+    \begin{verbatim}
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        fetch('/api/signup', {
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                firstName: data.get('firstName'),
+                lastName: data.get('lastName'),
+                email: data.get('email'),
+                password: data.get('password')
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            window.location.reload()
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    };
+    \end{verbatim}
+    \item
+    \text{Booking Appointment from Patient: }
+    \begin{verbatim}
+  function submitAppointment() {
+    fetch('/api/appointment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "pid": user.id,
+            "did": doctor.id,
+            "timeSlot": 
+                value.toDate().toISOString().slice(0, 19).replace('T', ' '),
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        SnackbarUtils.success("Appointment Added Successfully")
+        setOpen(false);
+    })
+    .catch((error) => {
+      SnackbarUtils.error("Error Adding Appointment")
+      console.error('Error:', error);
+    });
+  }
+    \end{verbatim}
+    \item
+    \text{Doctor Accepting Appointments: }
+    \text{FrontEnd fetcg API: }
+    \begin{verbatim}
+  const handleClick = (id) => {
+    fetch("/api/accepted/" + id)
+      .then((res) => {
+        if (res.status !== 200) {
+          SnackbarUtils.error("Error accepting appointments");
+          throw new Error("Error accepting appointments");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setAppointments(data);
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.error(err);
+        SnackbarUtils.error("Error accepting appointments");
+      })
+  }
+    \end{verbatim}
+    \item
+    \text{post request to BackEnd for altering appointment table:}
+    \begin{verbatim}
+app.get('/api/accepted/:bookingID', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+    if (!(req.session.user.UserRoleid && req.session.user.UserRoleid == '1')) {
+        console.log( "doctor", req.session.user);
+        res.status(400).json({message: ''});
+        return;
+    }
+    const query = `Update Appointment SET accepted = true WHERE book_id = ${req.params.bookingID};`;
+    connection
+        .query(query, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(result);
+            }
+        });
+});
+    \end{verbatim}
+\end{itemize}
+
+
+
+%Paste your code(limited to 5 pages)
