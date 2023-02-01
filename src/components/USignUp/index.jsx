@@ -53,6 +53,7 @@ const USignUp = () => {
         .then(data => {
             console.log('Success:', data);
             window.location.reload()
+            window.location.href = '/login'
         })
         .catch((error) => {
             console.error('Error:', error);

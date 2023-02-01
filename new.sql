@@ -106,9 +106,10 @@ ALTER table appointment ADD accepted BOOLEAN NULL AFTER time_slot;
 -- create table user_feedback
 CREATE TABLE user_feedback(
     id INT NOT NULL AUTO_INCREMENT,
-    user_id INT NOT NULL,
+    name VARCHAR(256),
     feedback VARCHAR(4000),
     rating INT,
-    PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES User(id) on delete cascade
+    PRIMARY KEY (id)
 );
+
+-- INSERT INTO user_feedback (user_id, feedback, rating) VALUES ()

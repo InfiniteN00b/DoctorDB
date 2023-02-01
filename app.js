@@ -92,6 +92,42 @@ app.post('/api/signup', function(req, res) {
         });
 });
 
+//api to submit feedback
+app.post('/api/feedback', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+    if (!req.body) {
+        res.status(400).json({message: 'No data provided'});
+        return;
+    }
+    let feedback = req.body;
+    let sql = `INSERT INTO user_feedback (name, feedback, rating) VALUES ('${feedback.name}', '${feedback.feedback}', ${feedback.rating});`;
+    connection
+    .query(sql, function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500).json(err);
+        } else {
+            res.status(200).json(result)
+        }
+        });
+});
+
+app.get('/api/feedback', function(req, res) {
+    let sql = `SELECT * FROM user_feedback;`;
+    connection
+    .query(sql, function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500).json(err);
+        } else {
+            res.status(200).json(result)
+        }
+        });
+    });
+
 // api to login users using users table
 app.post('/api/login', function(req, res) {
     // check if request type is option
@@ -199,6 +235,30 @@ app.get('/api/appointments/', function(req, res) {
             }
         });
 });
+app.get('/api/UserHistory/', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+    if (!(req.session.user.UserRoleid && req.session.user.UserRoleid == 2)) {
+        res.status(400).json({message: ''});
+        return;
+    }
+    const query = `SELECT * FROM Appointment JOIN User ON Appointment.patient_id = User.id WHERE patient_id = ${req.session.user.id};`;
+    connection
+        .query(query, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                const appointments = result.map((d) => {
+                    delete d.password;
+                    return d;
+                });
+                res.status(200).json(appointments);
+            }
+        });
+});
 
 // get profile infor at /api/profile
 app.post('/api/profile', function(req, res) {  
@@ -263,6 +323,7 @@ app.get('/api/accepted/:bookingID', function(req, res) {
 });
 
 
+
 app.get('/api/cancel/:bookingID', function(req, res) {
     if (!req.session.user) {
         res.status(401).json({message: 'Unauthorized'});
@@ -285,7 +346,34 @@ app.get('/api/cancel/:bookingID', function(req, res) {
             }
         });
 });
+
+app.get('/api/cancelUser/:bookingID', function(req, res) {
+    if (!req.session.user) {
+        res.status(401).json({message: 'Unauthorized'});
+        return;
+    }
+
+    if (!(req.session.user.UserRoleid && req.session.user.UserRoleid == '2')) {
+        console.log( "doctor", req.session.user);
+        res.status(400).json({message: ''});
+        return;
+    }
+    const query = `Delete From Appointment WHERE book_id = ${req.params.bookingID};`;
+    connection
+        .query(query, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(result);
+            }
+        });
+});
   
+
+
+
+
 
 
 

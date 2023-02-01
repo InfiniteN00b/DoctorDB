@@ -26,18 +26,51 @@ import DiagBox from "../../components/DiagBox";
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import SnackbarUtils from "../../components/SnackbarUtils";
+import PendingIcon from '@mui/icons-material/Pending';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 
 
 function Pappointments() {
-    const [appointments, setAppointments] = React.useState([]);
+  const [appointments, setAppointments] = React.useState([]);
 
     React.useEffect(() => {
-        fetch("api/Accepted")
-            .then((res) => res.json())
-            .then((data) => {
-                setAppointments(data);
-            });
+      fetch("/api/UserHistory")
+        .then((res) => {
+          if (res.status !== 200) {
+            SnackbarUtils.error("Error fetching appointments");
+            throw new Error("Error fetching appointments");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          console.log(data);
+          setAppointments(data);
+        })
+        .catch((err) => {
+          console.error(err);
+          SnackbarUtils.error("Unable to fetch appointments");
+        });
     }, []);
+
+    const handleCancel = (id) => {
+      fetch("/api/cancelUser/"+ id)
+        .then((res) => {
+          if (res.status !== 200) {
+            SnackbarUtils.error("Error cancelling appointments");
+            throw new Error("Error cancelling appointments");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setAppointments(data);
+          window.location.reload();
+        })
+        .catch((err) => {
+          console.error(err);
+          SnackbarUtils.error("Error cancelling appointments");
+        })
+    }
+
 
   return (
     <Card sx={{ minWidth: 275 }}>
@@ -51,12 +84,10 @@ function Pappointments() {
               <TableHead>
                 <TableRow>
                   <TableCell>Booking Id</TableCell>
-                  <TableCell align="center">Name</TableCell>
-                  <TableCell align="center">Email</TableCell>
-                  {/* <TableCell align="center">Phone</TableCell> */}
-                  {/* <TableCell align="center">Sex</TableCell> */}
+                  <TableCell align="center">Doctor id</TableCell>
+                  <TableCell align="center">Doctor Name</TableCell>
                   <TableCell align="center">Time Slot</TableCell>
-                  <TableCell align="right">Action</TableCell>
+                  <TableCell align="right">Request Queue</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -68,29 +99,29 @@ function Pappointments() {
                     <TableCell component="th" scope="row">
                       {row.book_id}
                     </TableCell>
-                    <TableCell align="center">{row.FirstName + " " + row.LastName}</TableCell>
-                    <TableCell align="center">{row.email}</TableCell>
+                    <TableCell align="center">{row.doctor_id}</TableCell>
+                    <TableCell align="center">{row.FirstName}</TableCell>
                     {/* <TableCell align="center">{row.Phone}</TableCell>
                     <TableCell align="center">{row.Sex}</TableCell> */}
                     <TableCell align="center">{new Date(row.time_slot).toLocaleString()}</TableCell>
                     <TableCell align="right">
-                      <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<ThumbUpAltIcon />}
-                        sx={{ mr: 2 }}
-                        size="small"
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<ThumbDownAltIcon />}
-                        size="small"
-                      >
-                        Cancel
-                      </Button>
+                      {!row.accepted ? (
+                        <>
+                          <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<ThumbDownAltIcon />}
+                            size="small"
+                            onClick={() => {handleCancel(row.book_id)}}
+                            sx={{mr: 2}}
+                          >
+                            Cancel
+                          </Button>
+                          <PendingIcon color="success" sx={{mr: 2, verticalAlign: 'middle'}} />
+                        </>
+                      ):(
+                        <TaskAltIcon color="success" sx={{mr: 2, verticalAlign: 'middle'}} />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

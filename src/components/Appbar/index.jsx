@@ -16,13 +16,13 @@ import AdbIcon from '@mui/icons-material/Adb';
 import { Link } from 'react-router-dom';
 import AuthContext from '../AuthContext';
 // import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-// import LocalPharmacyRoundedIcon from '@mui/icons-material/LocalPharmacyRounded';
+import LocalPharmacyRoundedIcon from '@mui/icons-material/LocalPharmacyRounded';
 
 function ResponsiveAppBar() {
   const authContext = React.useContext(AuthContext)
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [pages, setPages] = React.useState(['BookAppointment', 'My Appointments','About' ]);
+  const [pages, setPages] = React.useState(['BookAppointment', 'History','About', 'Reviews' ]);
   const [settings, setSettings] = React.useState(['Profile', 'Dashboard', 'Logout']);
 
   const handleOpenNavMenu = (event) => {
@@ -40,7 +40,7 @@ function ResponsiveAppBar() {
     console.log(authContext.user)
     if (authContext.logged === 1 && authContext.user.UserRoleid == 1) {
       console.log('admin')
-      setPages(['Appointments', 'About'])
+      setPages(['Appointments', 'About', 'Reviews'])
     }
 
   }, [authContext.user])
@@ -58,8 +58,8 @@ function ResponsiveAppBar() {
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-          {/* <LocalPharmacyRoundedIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
+          {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
+          <LocalPharmacyRoundedIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
             variant="h6"
             noWrap
@@ -119,7 +119,6 @@ function ResponsiveAppBar() {
             </Menu>
           </Box>
           <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-          {/* <LocalPharmacyIcon sx={{ display: { xs: 'center', md: 'none' }, mr: 1 }} /> */}
           <Typography
             variant="h5"
             noWrap

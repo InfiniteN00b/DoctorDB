@@ -14,8 +14,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Ddash from './pages/Ddash'
 import Pdash from './pages/Pdash'
 import IconButton from '@mui/material/IconButton'
-import CloseIcon from '@mui/icons-material/Close';
-import UserProfile from './pages/UserProfile'
+import CloseIcon from '@mui/icons-material/Close'
+import Feedback from './pages/Feedback'
 import Pappointments from './pages/Pappointments'
 
 function App() {
@@ -87,8 +87,8 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/Appointments" element={<Ddash/>} />
             <Route path="/BookAppointment" element={<Pdash />} />
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/My%20Appointments" element={<Pappointments />} />
+            <Route path="/History" element={<Pappointments />} />
+            <Route path="/Reviews" element={<Feedback />} />
             <Route path="*" element={<h1>404: Not Found</h1>} />
 
         </Routes>
